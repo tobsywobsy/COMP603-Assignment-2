@@ -13,8 +13,27 @@ public class DBManager {
         conn = DBEstablish.connect(); // Establishes connection to the database
     }
 
-    // Adds a new player to the database
+    // Checks if a player already exists in the database
+    private boolean playerExists(String name) {
+        String query = "SELECT COUNT(*) FROM Players WHERE name = ?";
+        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, name);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Adds a new player to the database if they don't already exist
     public void addPlayer(String name) {
+        if (playerExists(name)) {
+            System.out.println("Player already exists: " + name);
+            return;
+        }
         String insertPlayerSQL = "INSERT INTO Players (name) VALUES (?)";
         try (PreparedStatement pstmt = conn.prepareStatement(insertPlayerSQL)) {
             pstmt.setString(1, name);
